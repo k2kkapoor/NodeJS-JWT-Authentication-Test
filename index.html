@@ -18,7 +18,7 @@
     ></script>
   </head>
   <body>
-    <div style="margin-left: 15px">
+    <div style="margin-left: 30px">
       <h1 class="row">Login</h1>
       <main>
         <div class="row">
@@ -34,6 +34,8 @@
         <div>
           <button onClick="login()">Login</button>
           <button onClick="getDashboard()">Dashboard</button>
+          <!-- Add a button on the Homepage so you can access the new route "settings" -->
+          <button onClick="getSettings()">Settings</button>
         </div>
       </main>
     </div>
@@ -49,6 +51,7 @@
           document.getElementById("username").value = "";
           document.getElementById("password").value = "";
           if (res && res.data && res.data.success) {
+            history.replaceState("", "", "");
             const token = res.data.token;
             localStorage.setItem("jwt", token);
             getDashboard();
@@ -66,8 +69,28 @@
           })
           .then((res) => {
             if (res && res.data && res.data.success) {
+              tokenExpire();
               document.querySelector("h1.row").innerHTML = "Dashboard";
               document.querySelector("main").innerHTML = res.data.myContent;
+              history.pushState(null, "Dashboard", "/api/dashboard");
+            }
+          });
+      }
+      // Settings (needs to be done - should be protected)
+      function getSettings() {
+        const token = localStorage.getItem("jwt");
+        axios
+          .get("/api/settings", {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          })
+          .then((res) => {
+            if (res && res.data && res.data.success) {
+              tokenExpire();
+              document.querySelector("h1.row").innerHTML = "Settings";
+              document.querySelector("main").innerHTML = res.data.myContent;
+              history.pushState(null, "Settings", "api/settings");
             }
           });
       }
@@ -78,7 +101,22 @@
           getDashboard();
         }
       }
-      onLoad();
+
+      function tokenExpire() {
+        const token = localStorage.getItem("jwt");
+        const b64token = token.split(".")[1];
+        var decodeValue = JSON.parse(window.atob(b64token));
+        var decodeData = new Date(decodeValue.exp * 1000);
+        if (Date.now() >= decodeData) {
+          localStorage.removeItem("jwt");
+          window.location.href = "/";
+        }
+        var time = decodeValue.exp * 1000 - new Date();
+        setTimeout(function () {
+          tokenExpire();
+        }, time);
+      }
+      //   onLoad();
     </script>
   </body>
 </html>

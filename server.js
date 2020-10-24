@@ -38,6 +38,11 @@ let users = [
         id:2,
         username:'kapoor',
         password:'456',
+    },
+    {
+        id:3,
+        username:'rohit',
+        password:'789',
     }
 ];
 
@@ -47,7 +52,8 @@ app.post('/api/login', (req,res)=>{
     
     for(let user of users){
         if(username == user.username && password == user.password){
-            let token = jwt.sign({id: user.id, username:user.username}, secretKey,{expiresIn: '7d'});
+            // In the NodeJS, change the JWT expire to 3 minutes
+            let token = jwt.sign({id: user.id, username:user.username}, secretKey,{expiresIn: 180});
             res.json({
                 success:true,
                 err:null,
@@ -66,7 +72,6 @@ app.post('/api/login', (req,res)=>{
 });
 
 app.get('/api/dashboard', jwtMW, (req,res)=>{
-    
     res.json({
         success:true,
         myContent: 'Secret content only logged in people can see.'
@@ -78,6 +83,14 @@ app.get('/api/prices', jwtMW, (req,res)=>{
     res.json({
         success:true,
         myContent: 'Price is $3.99'
+    });
+});
+
+app.get('/api/settings', jwtMW, (req,res)=>{
+    
+    res.json({
+        success:true,
+        myContent: 'This is settings'
     });
 });
 
